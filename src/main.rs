@@ -7,7 +7,7 @@ use mtag_cli::{music_organizer::organizer::organizer_start, utils::tools::get_au
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
-    #[arg(value_name = "MUSIC_FOLDER", default_value = ".")]
+    #[arg(value_name = "MUSIC_FOLDER")]
     music_folder_path: PathBuf,
     #[arg(value_name = "TARGET_FOLDER", default_value = "Music")]
     target_folder_path: PathBuf,
