@@ -13,7 +13,7 @@ Organize music for self-built media libraries, like plex, emby, jellyfin, throug
 ## Usage
 
 ```bash
-Usage: mtag.exe [OPTIONS] <MUSIC_FOLDER> [TARGET_FOLDER]
+Usage: mtag [OPTIONS] <MUSIC_FOLDER> [TARGET_FOLDER]
 
 Arguments:
   <MUSIC_FOLDER>
