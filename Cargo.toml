@@ -1,6 +1,6 @@
 [package]
 name = "mtag-cli"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Star-tears"]
 license = "MIT"
 description = "Organize music for self-built media libraries like plex, emby, jellyfin"
