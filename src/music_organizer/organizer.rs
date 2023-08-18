@@ -1,8 +1,13 @@
 use std::{
+    cmp::min,
     collections::HashMap,
+    fmt::Write,
     path::{Path, PathBuf},
+    thread,
+    time::Duration,
 };
 
+use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use lofty::{read_from_path, Accessor, TaggedFileExt};
 
 use crate::utils::fs::copy_file_with_parents;
@@ -12,6 +17,11 @@ struct AudioBasicInfo {
     path: PathBuf,
     artist: String,
     album: String,
+}
+
+struct FileCopyUnit {
+    from: PathBuf,
+    to: PathBuf,
 }
 
 pub fn organizer_start(files_list: Vec<PathBuf>, target_folder_path: &Path) {
@@ -41,13 +51,17 @@ pub fn organizer_start(files_list: Vec<PathBuf>, target_folder_path: &Path) {
                 .to_string();
         }
     }
+    let mut all_file_copy_task: Vec<FileCopyUnit> = Vec::new();
     for audio_basic_info in audio_basic_info_list {
         let source_path = audio_basic_info.path.to_path_buf();
         let mut target_path = target_folder_path.to_path_buf();
         target_path.push(audio_basic_info.artist);
         target_path.push(audio_basic_info.album);
         target_path.push(audio_basic_info.path.file_name().unwrap());
-        copy_file_with_parents(&source_path, &target_path);
+        all_file_copy_task.push(FileCopyUnit {
+            from: source_path.to_path_buf(),
+            to: target_path.to_path_buf(),
+        });
         let mut lyric_source_path = audio_basic_info.path.parent().unwrap().to_path_buf();
         lyric_source_path.push(
             audio_basic_info
@@ -62,9 +76,31 @@ pub fn organizer_start(files_list: Vec<PathBuf>, target_folder_path: &Path) {
         if lyric_source_path.exists() {
             target_path.pop();
             target_path.push(lyric_source_path.file_name().unwrap());
-            copy_file_with_parents(&lyric_source_path, &target_path);
+            all_file_copy_task.push(FileCopyUnit {
+                from: lyric_source_path.to_path_buf(),
+                to: target_path.to_path_buf(),
+            });
         }
     }
+    file_copy_run(all_file_copy_task);
+}
+
+fn file_copy_run(file_copy_unit_list: Vec<FileCopyUnit>) {
+    let total_size = file_copy_unit_list.len() as u64;
+
+    let pb = ProgressBar::new(total_size);
+    pb.set_style(ProgressStyle::with_template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {pos}/{len} ({eta})")
+        .unwrap()
+        .with_key("eta", |state: &ProgressState, w: &mut dyn Write| write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap())
+        .progress_chars("#>-"));
+
+    for (index, file_copy_unit) in file_copy_unit_list.iter().enumerate() {
+        let new = (index + 1) as u64;
+        copy_file_with_parents(&file_copy_unit.from, &file_copy_unit.to);
+        pb.set_position(new);
+        thread::sleep(Duration::from_millis(12));
+    }
+    pb.finish_with_message("file copy completed");
 }
 
 pub fn get_audio_album(audio_path: &Path) -> String {

@@ -1,5 +1,7 @@
 # mtag-cli
 
+Music Tag Organizer
+
 Organize music for self-built media libraries, like plex, emby, jellyfin, through meta-information about the music, tag information
 
 ## Install
